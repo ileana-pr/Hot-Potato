@@ -2,14 +2,14 @@
   "ecs7": true,
   "runtimeVersion": "7",
   "display": {
-    "title": "SG Clubhouse 3",
-    "description": "Empty Scene Template",
+    "title": "SG Clubhouse",
+    "description": "Decentraland's meeting spot for plant lovers.",
     "favicon": "favicon_asset",
-    "navmapThumbnail": "assets/scene/Images/Explorer_4_19_2026_6_38_41_PM.png"
+    "navmapThumbnail": "assets/scene/Images/thumbnail-2026-05-24 222210.png"
   },
-  "owner": "",
+  "owner": "Tati",
   "contact": {
-    "name": "adigitaltati",
+    "name": "@adigitaltati",
     "email": ""
   },
   "main": "bin/index.js",
@@ -59,10 +59,10 @@
   },
   "creator": "",
   "skyboxConfig": {
-    "fixedTime": 43200
+    "fixedTime": 30000
   },
   "source": {
-    "origin": "creator-hub",
+    "origin": "SDK7",
     "projectId": "7e576211-6083-4b53-8a0b-3ed0050d7d73"
   },
   "rating": "T"

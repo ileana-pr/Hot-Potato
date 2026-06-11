@@ -19,3 +19,7 @@ README.md
 *.rar
 *.md
 src
+
+# Exclude large unused assets and thumbnails to keep deployment size under 15MB
+thumbnails/
+assets/scene/Images/Explorer_4_19_2026_6_38_41_PM.png
