@@ -7,5 +7,7 @@ export const HotPotatoState = engine.defineComponent('hot-potato-state', {
   graceTimer: Schemas.Number,          // Prevents instant tag-backs (seconds remaining)
   lastHolderId: Schemas.String,        // Wallet address of the previous holder
   countdownTimer: Schemas.Number,      // Timer for lobby countdowns and explosion screen reset
-  activePlayers: Schemas.String        // Comma-separated list of active player addresses
+  activePlayers: Schemas.String,       // Comma-separated list of active player addresses
+  lobbyPlayers: Schemas.String,        // Comma-separated list of players in lobby
+  blastScores: Schemas.String          // Comma-separated list of "walletAddress:score"
 })

@@ -96,23 +96,27 @@ export function potatoGameLoopSystem(dt: number) {
       // Timers do not run. Waiting for a user click in the UI to transition state to Countdown (1).
       break
 
-    case 1: // Countdown Phase
+    case 1: // Lobby Countdown Phase (30s countdown)
       state.countdownTimer -= dt
       if (state.countdownTimer <= 0) {
-        if (activePlayers.length > 0) {
+        const lobbyList = state.lobbyPlayers ? state.lobbyPlayers.split(",").filter(Boolean) : []
+        if (lobbyList.length > 0) {
           // Select a random player to hold the potato first
-          const randomIndex = Math.floor(Math.random() * activePlayers.length)
-          state.potatoHolderId = activePlayers[randomIndex]
-          state.activePlayers = activePlayers.join(',')
-          // Set a random round duration between 15 and 45 seconds (so players don't know the exact time!)
+          const randomIndex = Math.floor(Math.random() * lobbyList.length)
+          state.potatoHolderId = lobbyList[randomIndex]
+          state.activePlayers = state.lobbyPlayers
+          state.lobbyPlayers = "" // Clear lobby for the active match
+          // Set a random round duration between 15 and 45 seconds
           state.roundTimer = 15.0 + Math.random() * 30.0
           state.graceTimer = 0
           state.lastHolderId = ''
-          state.gamePhase = 2 // Active Phase
-          console.log(`[Hot Potato] Game started! Initial holder is: ${getPlayerName(state.potatoHolderId)}`)
+          state.gamePhase = 2 // Transition to active game phase
+          console.log(`[Hot Potato] Game started! Active players: ${state.activePlayers}`)
         } else {
-          // Fallback: no players found, revert to lobby
+          // Revert to idle lobby if everyone left
           state.gamePhase = 0
+          state.potatoHolderId = ''
+          state.activePlayers = ''
         }
       }
       break
@@ -123,18 +127,22 @@ export function potatoGameLoopSystem(dt: number) {
         state.graceTimer -= dt
       }
 
+      const matchPlayers = state.activePlayers ? state.activePlayers.split(",").filter(Boolean) : []
+
       // Check if the current potato holder has disconnected or left the scene
       if (!activePlayers.includes(state.potatoHolderId)) {
-        if (activePlayers.length > 0) {
-          const randomIndex = Math.floor(Math.random() * activePlayers.length)
-          state.potatoHolderId = activePlayers[randomIndex]
+        const matchPlayersInScene = matchPlayers.filter(addr => activePlayers.includes(addr))
+        if (matchPlayersInScene.length > 0) {
+          const randomIndex = Math.floor(Math.random() * matchPlayersInScene.length)
+          state.potatoHolderId = matchPlayersInScene[randomIndex]
           state.graceTimer = 0
           state.lastHolderId = ''
-          console.log(`[Hot Potato] Holder left the scene. Randomly passed to: ${getPlayerName(state.potatoHolderId)}`)
+          console.log(`[Hot Potato] Holder left the scene. Randomly passed to active player in scene: ${getPlayerName(state.potatoHolderId)}`)
         } else {
-          // No players left, reset to lobby
+          // No active match players left, reset to lobby
           state.gamePhase = 0
           state.potatoHolderId = ''
+          state.activePlayers = ''
           return
         }
       }
@@ -142,7 +150,10 @@ export function potatoGameLoopSystem(dt: number) {
       // Proximity tagging check
       const holderPos = getPlayerPosition(state.potatoHolderId)
       if (holderPos) {
-        for (const playerAddress of activePlayers) {
+        for (const playerAddress of matchPlayers) {
+          // Make sure the target player is still in the scene
+          if (!activePlayers.includes(playerAddress)) continue
+
           // Don't tag yourself!
           if (playerAddress === state.potatoHolderId) continue
 
@@ -173,6 +184,39 @@ export function potatoGameLoopSystem(dt: number) {
         state.gamePhase = 3 // Explosion Phase
         state.countdownTimer = 5.0 // Wait 5s before resetting to lobby
         console.log(`[Hot Potato] BOOM! Potato exploded on: ${getPlayerName(state.potatoHolderId)}`)
+
+        // Update Blast Scoreboard
+        if (state.potatoHolderId) {
+            const scoresMap: Record<string, number> = {}
+            const scoresStr = state.blastScores || ""
+            if (scoresStr) {
+                scoresStr.split(",").forEach(item => {
+                    const parts = item.split(":")
+                    if (parts.length === 2) {
+                        scoresMap[parts[0]] = parseInt(parts[1]) || 0
+                    }
+                })
+            }
+            
+            // Ensure all active players who played this round are registered on the scoreboard
+            if (state.activePlayers) {
+                state.activePlayers.split(",").filter(Boolean).forEach(addr => {
+                    if (scoresMap[addr] === undefined) {
+                        scoresMap[addr] = 0 // Initialize to 0 explosions
+                    }
+                })
+            }
+            
+            // Increment the explosions count for the holder who exploded
+            scoresMap[state.potatoHolderId] = (scoresMap[state.potatoHolderId] || 0) + 1
+            
+            // Serialize back
+            const newScores: string[] = []
+            for (const key in scoresMap) {
+                newScores.push(`${key}:${scoresMap[key]}`)
+            }
+            state.blastScores = newScores.join(",")
+        }
       }
       break
 
