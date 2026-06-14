@@ -12,6 +12,7 @@ import {
     AvatarAttach,
     AvatarAnchorPointType,
     MeshCollider,
+    ColliderLayer,
     MaterialTransparencyMode,
     TextShape,
     TextAlignMode
@@ -120,6 +121,35 @@ function createFence() {
     }
 }
 
+/**
+ * Invisible physics-only boundary walls at the parcel perimeter.
+ * Returns the 5 entity IDs so a game-phase system can toggle them on/off.
+ * Walls start INACTIVE (no collider) — only enabled during active gameplay.
+ */
+function createBoundaryWalls(): Entity[] {
+    const HEIGHT   = 19.9
+    const MID_Y    = HEIGHT / 2
+    const T        = 0.3
+    const SPAN     = 15.9
+    const entities: Entity[] = []
+
+    const stamp = (x: number, y: number, z: number, sx: number, sy: number, sz: number): Entity => {
+        const e = engine.addEntity()
+        Transform.create(e, { position: Vector3.create(x, y, z), scale: Vector3.create(sx, sy, sz) })
+        // No MeshCollider yet — added by boundaryWallSystem when game is active
+        entities.push(e)
+        return e
+    }
+
+    stamp(8,      MID_Y, 0.15,   SPAN, HEIGHT, T)   // South
+    stamp(8,      MID_Y, 15.85,  SPAN, HEIGHT, T)   // North
+    stamp(0.15,   MID_Y, 8,      T, HEIGHT, SPAN)   // West
+    stamp(15.85,  MID_Y, 8,      T, HEIGHT, SPAN)   // East
+    stamp(8, 19.85, 8, SPAN, T, SPAN)               // Ceiling
+
+    return entities
+}
+
 function createParkour() {
     const GLB = 'assets/asset-packs/potatoes/potato.glb'
 
@@ -183,7 +213,7 @@ function createParkour() {
 
 function createElevator() {
     const ELEV_X = 14.0
-    const ELEV_Z = 7.5
+    const ELEV_Z = 4.5         // south of the entrance gap — right side when facing outward
     const ELEV_BOTTOM = 0.0    // potato base Y at ground
     const ELEV_TOP = 15.5      // potato base Y at top — just below summit at y=16.0
     const POTATO_HEIGHT = 0.5  // model top surface height at scale 0.5
@@ -592,17 +622,59 @@ function scoreboardSystem(dt: number) {
     }
 }
 
+/**
+ * Thumbnail billboard on the east fence — visible from the road.
+ * A thin box slab lets DCL map the image naturally onto the wide east face.
+ * Emissive texture keeps it bright and readable at all times of day.
+ */
+function createSceneBillboard() {
+    const src = 'assets/images/hot-potato-thumbnail.png'
+    const sign = engine.addEntity()
+    Transform.create(sign, {
+        position: Vector3.create(15.7, 6.0, 8.0),  // east fence, centred N/S, above entrance
+        scale:    Vector3.create(0.15, 3.0, 4.0)   // thin slab — east face shows image to road
+    })
+    MeshRenderer.setBox(sign)
+    Material.setPbrMaterial(sign, {
+        texture:         Material.Texture.Common({ src }),
+        emissiveTexture: Material.Texture.Common({ src }),
+        emissiveIntensity: 0.6,
+        roughness: 1.0,
+        metallic:  0.0,
+        albedoColor: Color4.White()
+    })
+}
+
 export function main() {
     // Initialize UI from ui.tsx
     setupUi()
 
     createFence()
+    createSceneBillboard()  // hot potato thumbnail — east fence, facing road
+    
+    // Create elevator in the SE corner (right of entrance, physics-safe)
+    createElevator()
+
+    // Boundary walls — open in lobby, sealed during active gameplay
+    const boundaryWalls = createBoundaryWalls()
+    let wallsActive = false
+    engine.addSystem(function boundaryWallSystem() {
+        let stateEnt: Entity | null = null
+        for (const [e] of engine.getEntitiesWith(HotPotatoState)) { stateEnt = e; break }
+        const phase = stateEnt ? HotPotatoState.get(stateEnt).gamePhase : 0
+        const shouldLock = phase === 2 || phase === 3
+        if (shouldLock && !wallsActive) {
+            for (const e of boundaryWalls) MeshCollider.setBox(e, ColliderLayer.CL_PHYSICS)
+            wallsActive = true
+        } else if (!shouldLock && wallsActive) {
+            for (const e of boundaryWalls) MeshCollider.deleteFrom(e)
+            wallsActive = false
+        }
+    })
 
     // Create vertical parkour path
     createParkour()
 
-    // Create elevator in the SE corner
-    createElevator()
 
     // Create 3D Scoreboard and register update system
     createScoreboard()

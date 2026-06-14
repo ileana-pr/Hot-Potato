@@ -148,6 +148,17 @@ export function potatoGameLoopSystem(dt: number) {
         }
       }
 
+      // End round if fewer than 2 match players are still present in scene.
+      // Prevents holders from being stranded alone — or players leaving to avoid the potato.
+      const matchPlayersInScene = matchPlayers.filter(addr => activePlayers.includes(addr))
+      if (matchPlayersInScene.length < 2) {
+        console.log(`[Hot Potato] Only ${matchPlayersInScene.length} match player(s) in scene — returning to lobby.`)
+        state.gamePhase = 0
+        state.potatoHolderId = ''
+        state.activePlayers = ''
+        return
+      }
+
       // Proximity tagging check — skipped if holder is outside the scene parcel bounds
       // (they hold the potato until they return in-bounds or it explodes on them)
       const holderPos = getPlayerPosition(state.potatoHolderId)
