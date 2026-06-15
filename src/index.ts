@@ -213,7 +213,7 @@ function createParkour() {
 
 function createElevator() {
     const ELEV_X = 14.0
-    const ELEV_Z = 4.5         // south of the entrance gap — right side when facing outward
+    const ELEV_Z = 1.5         // far south-east corner, tight against the fence junction
     const ELEV_BOTTOM = 0.0    // potato base Y at ground
     const ELEV_TOP = 15.5      // potato base Y at top — just below summit at y=16.0
     const POTATO_HEIGHT = 0.5  // model top surface height at scale 0.5
@@ -623,26 +623,40 @@ function scoreboardSystem(dt: number) {
 }
 
 /**
- * Thumbnail billboard on the east fence — visible from the road.
- * A thin box slab lets DCL map the image naturally onto the wide east face.
- * Emissive texture keeps it bright and readable at all times of day.
+ * Thumbnail billboard on the east fence — correct image on BOTH sides.
+ * Two planes back-to-back: one facing east (road), one facing west (interior).
+ * Tiny x-offset between them prevents z-fighting.
  */
 function createSceneBillboard() {
     const src = 'assets/images/hot-potato-thumbnail.png'
-    const sign = engine.addEntity()
-    Transform.create(sign, {
-        position: Vector3.create(15.7, 6.0, 8.0),  // east fence, centred N/S, above entrance
-        scale:    Vector3.create(0.15, 3.0, 4.0)   // thin slab — east face shows image to road
-    })
-    MeshRenderer.setBox(sign)
-    Material.setPbrMaterial(sign, {
+    const mat = {
         texture:         Material.Texture.Common({ src }),
         emissiveTexture: Material.Texture.Common({ src }),
         emissiveIntensity: 0.6,
         roughness: 1.0,
         metallic:  0.0,
         albedoColor: Color4.White()
+    }
+
+    // Road-facing side (east, +X toward road)
+    const front = engine.addEntity()
+    Transform.create(front, {
+        position: Vector3.create(15.71, 3.8, 8.0),
+        scale:    Vector3.create(5.0, 2.5, 1.0),
+        rotation: Quaternion.fromEulerDegrees(0, -90, 0)
     })
+    MeshRenderer.setPlane(front)
+    Material.setPbrMaterial(front, mat)
+
+    // Interior-facing side (west, toward scene) — 2cm behind front plane
+    const back = engine.addEntity()
+    Transform.create(back, {
+        position: Vector3.create(15.69, 3.8, 8.0),
+        scale:    Vector3.create(5.0, 2.5, 1.0),
+        rotation: Quaternion.fromEulerDegrees(0, 90, 0)
+    })
+    MeshRenderer.setPlane(back)
+    Material.setPbrMaterial(back, mat)
 }
 
 export function main() {

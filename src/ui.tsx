@@ -78,10 +78,10 @@ export const uiMenu = () => {
     let timeStatus = "Warm"
     let statusColor = Color4.fromHexString("#4CD964") // Green
     if (state.roundTimer < 10) {
-        timeStatus = "💥 BURNING!!! 💥"
+        timeStatus = "!! BURNING !!"
         statusColor = Color4.fromHexString("#FF3B30") // Red
     } else if (state.roundTimer < 20) {
-        timeStatus = "🔥 Hot! 🔥"
+        timeStatus = "~ Hot! ~"
         statusColor = Color4.fromHexString("#FF9500") // Orange
     }
 
@@ -123,7 +123,7 @@ export const uiMenu = () => {
             >
                 {/* Header */}
                 <Label
-                    value="🔥 HOT POTATO 🔥"
+                    value="★ HOT POTATO ★"
                     fontSize={22}
                     color={Color4.fromHexString("#FF5A36")}
                     uiTransform={{
@@ -265,7 +265,7 @@ export const uiMenu = () => {
                             />
                         ) : (
                             <Label
-                                value="✅ You are in! Get ready..."
+                                value=">> You are in! Get ready..."
                                 fontSize={14}
                                 color={Color4.fromHexString("#4CD964")}
                                 uiTransform={{ alignSelf: 'center', margin: { top: 8 } }}
@@ -293,7 +293,7 @@ export const uiMenu = () => {
                                 }}
                             >
                                 <Label
-                                    value="🏃 ACTIVE PLAYER 🏃"
+                                    value=">> ACTIVE PLAYER <<"
                                     fontSize={13}
                                     color={Color4.fromHexString("#4CD964")}
                                     uiTransform={{ alignSelf: 'center', margin: { bottom: 8 } }}
@@ -308,7 +308,7 @@ export const uiMenu = () => {
                                     uiBackground={{ color: Color4.fromHexString("#1D1A39") }}
                                 >
                                     <Label
-                                        value="🥔 CURRENT HOLDER"
+                                        value=">> CURRENT HOLDER"
                                         fontSize={11}
                                         color={Color4.Gray()}
                                     />
@@ -328,7 +328,7 @@ export const uiMenu = () => {
                                     }}
                                 >
                                     <Label
-                                        value="🌡️ POTATO STATE"
+                                        value="~ POTATO STATE"
                                         fontSize={11}
                                         color={Color4.Gray()}
                                     />
@@ -340,7 +340,7 @@ export const uiMenu = () => {
                                     />
                                 </UiEntity>
                                 <Label
-                                    value={isHolder ? "⚠️ YOU HAVE THE POTATO! Tag someone!" : "🏃 Stay away from the holder!"}
+                                    value={isHolder ? "!! YOU HAVE THE POTATO! Tag someone!" : ">> Stay away from the holder!"}
                                     fontSize={13}
                                     color={isHolder ? Color4.fromHexString("#FF3B30") : Color4.White()}
                                     uiTransform={{
@@ -359,7 +359,7 @@ export const uiMenu = () => {
                                 }}
                             >
                                 <Label
-                                    value="👀 SPECTATING GAME"
+                                    value=">> SPECTATING GAME"
                                     fontSize={14}
                                     color={Color4.fromHexString("#8E8E93")}
                                     uiTransform={{ alignSelf: 'center', margin: { bottom: 8 } }}
@@ -374,7 +374,7 @@ export const uiMenu = () => {
                                     uiBackground={{ color: Color4.fromHexString("#1D1A39") }}
                                 >
                                     <Label
-                                        value="🥔 CURRENT HOLDER"
+                                        value=">> CURRENT HOLDER"
                                         fontSize={11}
                                         color={Color4.Gray()}
                                     />
@@ -422,7 +422,7 @@ export const uiMenu = () => {
                                     />
                                 ) : (
                                     <Label
-                                        value="✅ Queued for next round!"
+                                        value=">> Queued for next round!"
                                         fontSize={13}
                                         color={Color4.fromHexString("#4CD964")}
                                         uiTransform={{ alignSelf: 'center' }}
@@ -443,7 +443,7 @@ export const uiMenu = () => {
                         }}
                     >
                         <Label
-                            value="💥 BOOM! 💥"
+                            value="!! BOOM !!"
                             fontSize={22}
                             color={Color4.fromHexString("#FF3B30")}
                             uiTransform={{ margin: { bottom: 4 }, alignSelf: 'center' }}
